@@ -1,30 +1,38 @@
-pipeline {
-    agent any
-
-    tools {
-        sonarQube 'SonarScanner'
-    }
-
-    stages {
-        stage('Checkout') {
+ pipeline { 
+     agent any
+     environment {
+         // Set JAVA_HOME to the path of your Java 17 installation
+         JAVA_HOME = 'C:\\Program Files\\Java\\jdk-17' 
+         // Add Java bin directory to PATH
+         PATH = "${JAVA_HOME}\\bin;${env.PATH}"
+         }  
+    tools { 
+        maven 'M3' 
+        
+    } 
+    stages { 
+        stage('Maven version') { 
             steps {
-                git branch: 'main',
-                    credentialsId: 'git-credentials',
-                    url: 'https://github.com/username/repo.git'
-            }
+                bat 'java -version' 
+                bat 'mvn --version' 
+            } 
         }
-
-        stage('SonarQube Analysis') {
+        stage('GetCode') {
+            steps { 
+                git branch: 'main', url: 'https://github.com/Maitri0503/java-jenkins-pipeline.git'
+            }
+        } 
+        stage('Build') { 
             steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh """
-                    sonar-scanner \
-                    -Dsonar.projectKey=my-project \
-                    -Dsonar.projectName=my-project \
-                    -Dsonar.sources=.
-                    """
+                bat 'mvn clean package'
                 }
-            }
-        }
+            } 
+            stage('SonarQube analysis') {
+                steps { 
+                    withSonarQubeEnv('SonarQubeserver') {
+                        bat 'mvn sonar:sonar' 
+                    } 
+                }
+            } 
     }
-}
+}   
