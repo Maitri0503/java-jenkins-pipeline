@@ -1,16 +1,29 @@
 pipeline {
     agent any
 
+    tools {
+        sonarQube 'SonarScanner'
+    }
+
     stages {
-        stage('Checkout Test') {
+        stage('Checkout') {
             steps {
-                echo 'Repository fetched successfully'
+                git branch: 'main',
+                    credentialsId: 'git-credentials',
+                    url: 'https://github.com/username/repo.git'
             }
         }
 
-        stage('Pipeline Test') {
+        stage('SonarQube Analysis') {
             steps {
-                echo 'Jenkins Pipeline is working'
+                withSonarQubeEnv('SonarQube') {
+                    sh """
+                    sonar-scanner \
+                    -Dsonar.projectKey=my-project \
+                    -Dsonar.projectName=my-project \
+                    -Dsonar.sources=.
+                    """
+                }
             }
         }
     }
